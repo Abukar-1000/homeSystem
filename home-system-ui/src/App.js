@@ -2,6 +2,8 @@ import logo from './logo.svg';
 import './App.css';
 import { Box } from '@mui/material';
 import CommandLineModal from './Components/Input/CommandLineModal';
+import { CommandLineModalContextProvider } from './Components/Input/CommandLineModalContext';
+import { CommandLineMessageContextProvider } from './Components/Input/CommandLineMessageContext';
 
 function App() {
 
@@ -54,17 +56,21 @@ function App() {
 
 
   return (
-    <Box
-      display={"flex"}
-      flexDirection={"column"}
-      justifyContent={"center"}
-      alignContent={"center"}
-      gap={"1rem"}
-      width={"100dvw"}
-      height={"100dvh"}
-    >
-      <CommandLineModal messages={messages}/>
-    </Box>
+    <CommandLineModalContextProvider>
+      <CommandLineMessageContextProvider>
+        <Box
+          display={"flex"}
+          flexDirection={"column"}
+          justifyContent={"center"}
+          alignContent={"center"}
+          gap={"1rem"}
+          width={"100dvw"}
+          height={"100dvh"}
+        >
+          <CommandLineModal messages={messages}/>
+        </Box>
+      </CommandLineMessageContextProvider>
+    </CommandLineModalContextProvider>
   );
 }
 

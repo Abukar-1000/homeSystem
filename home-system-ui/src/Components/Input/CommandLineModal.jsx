@@ -2,16 +2,18 @@ import { Container, Fade, Paper, Slide } from '@mui/material';
 import Box from '@mui/material/Box';
 import CommandlineInputElement from './CommandlineInputElement';
 import CircleIcon from '@mui/icons-material/Circle';
-import { useState } from 'react';
+import { useCommandLineModalContext } from './CommandLineModalContext';
+import { CommandLineModalConfig } from './CommandLineModalHeaderCommands';
+import { useCommandLineMessageContext } from './CommandLineMessageContext';
 
 function HeaderNavButton({
-    modalVisible,
+    onClick,
     children
 }) {
     return (
         <Box
             onClick={(e) => {
-                modalVisible(false)
+                onClick();
             }}
             sx={{
                 cursor: "pointer"
@@ -21,36 +23,50 @@ function HeaderNavButton({
         </Box>
     );
 }
-function CommandLineModalHeader({
-    modalVisible
-}) {
 
+function CommandLineModalHeader({}) {
+
+    const { commandLineModalState, dispatch } = useCommandLineModalContext();
     return (
         <Box>
             <Box
-                position={"sticky"}
+                top={"10px"}
                 display={"flex"}
                 justifyContent={"end"}
                 alignContent={"end"}
-                gap={"1rem"}
                 paddingRight={"1rem"}
                 paddingTop={"0.5rem"}
                 paddingBottom={"0.5rem"}
+                gap={"1rem"}
             >
                 <HeaderNavButton
-                    modalVisible={modalVisible}
+                    onClick={() => dispatch(prev => ({...prev, isVisible: !prev.isVisible }))}
                 >
                     <CircleIcon sx={{ color: "#FD5D55"}} />
                 </HeaderNavButton>
 
                 <HeaderNavButton
-                    modalVisible={modalVisible}
+                    onClick={() => dispatch(prev => {
+                        const newWidth = (
+                            commandLineModalState.width === CommandLineModalConfig.width.mx?
+                                CommandLineModalConfig.width.md
+                            :commandLineModalState.width === CommandLineModalConfig.width.md?
+                                CommandLineModalConfig.width.sm
+                            : commandLineModalState.width === CommandLineModalConfig.width.sm?
+                                CommandLineModalConfig.width.md
+                            : CommandLineModalConfig.width.md
+                        );
+                        return {
+                            ...prev, 
+                            width: newWidth 
+                        }
+                    })}
                 >
                     <CircleIcon sx={{ color: "#FDBB2D"}}/>
                 </HeaderNavButton>
 
                 <HeaderNavButton
-                    modalVisible={modalVisible}
+                    onClick={() => dispatch(prev => ({...prev, width: CommandLineModalConfig.width.mx }))}
                 >
                     <CircleIcon sx={{ color: "#25C73F"}}/>
                 </HeaderNavButton>                
@@ -63,12 +79,17 @@ export default function CommandLineModal({
     messages
 }) {
 
-    const [modalVisible, setModalVisible] = useState(true);
+    const { commandLineModalState, dispatch } = useCommandLineModalContext();
+    const {
+        state: commandLineMessageContextState,
+        dispatch: dispatchCMDMsg
+    } = useCommandLineMessageContext();
+    
     return (
         <Slide
             timeout={300}
             direction={"up"}
-            in={modalVisible}
+            in={commandLineModalState.isVisible}
         >
             <Box
                 display={"flex"}
@@ -78,7 +99,7 @@ export default function CommandLineModal({
                 <Paper
                     elevation={24}
                     sx={{
-                        borderRadius: "10px"
+                        borderRadius: "10px",
                     }}
                 >
                     {/* 
@@ -88,20 +109,30 @@ export default function CommandLineModal({
                         sx={{
                             backgroundColor: "#000",
                             height: "60vh",
-                            width: "90vw",
+                            width: commandLineModalState.width,
                             borderRadius: "10px",
                             overflow: "scroll",
                             scrollBehavior: "smooth",
                             scrollbarColor: "transparent",
+                            position: "sticky",
+                            scrollbarWidth: "none", // Hide the scrollbar for firefox
+                            '&::-webkit-scrollbar': {
+                                display: 'none', // Hide the scrollbar for WebKit browsers (Chrome, Safari, Edge, etc.)
+                            },
+                            '&-ms-overflow-style:': {
+                                display: 'none', // Hide the scrollbar for IE
+                            }
+
                         }}
                     >
-                        <CommandLineModalHeader modalVisible={setModalVisible}/>
+                        <CommandLineModalHeader />
                         <Container 
-                            maxWidth = "lg"
+                            maxWidth = "xxl"
                         >
                             {
-                                messages.map(msg => <CommandlineInputElement text={msg} />)
+                                commandLineMessageContextState.allMesseges.map(msg => <CommandlineInputElement text={msg} />)
                             }
+                            <CommandlineInputElement text={""} />
                         </Container>
                     </Box>
                 </Paper>
